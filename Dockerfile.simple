@@ -1,0 +1,28 @@
+# 简化版 Dockerfile - 直接使用本地构建的二进制文件
+# 使用方式：先运行 make build 构建二进制，然后使用此 Dockerfile 打包
+
+FROM debian:bullseye-slim
+
+# 安装运行时依赖
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置时区
+ENV TZ=Asia/Shanghai
+
+WORKDIR /app
+
+# 从本地复制已构建好的二进制文件（包含嵌入的静态文件）
+COPY bin/server .
+
+# 创建配置目录和数据目录（通过挂载提供）
+RUN mkdir -p ./config ./data
+
+# 暴露端口
+EXPOSE 8080
+
+# 运行应用
+CMD ["./server"]
+

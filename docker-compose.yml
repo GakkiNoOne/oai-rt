@@ -1,0 +1,12 @@
+services:
+  rt-manage:
+    image: rt-manage:0.0.1
+    container_name: rt-manage
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config  # 配置文件目录，需将 config.yml 放在 ./config/ 目录下
+    environment:
+      - TZ=Asia/Shanghai

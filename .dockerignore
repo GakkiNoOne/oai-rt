@@ -1,0 +1,40 @@
+# .dockerignore - 适用于多阶段构建和简化版构建
+# 只排除不需要的文件，保留源代码供多阶段构建使用
+
+# Git
+.git
+.gitignore
+
+# 构建产物（但保留 bin/server 供简化版使用）
+internal/web/dist
+bin/*
+!bin/server
+
+# 数据文件
+data
+*.db
+
+# 配置文件（通过挂载提供）
+config/*.yml
+
+# 依赖（多阶段构建会重新安装）
+frontend/node_modules
+node_modules
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.log
+*.tmp
+.DS_Store
+
+# Docker 相关文件
+docker-compose.yml
+build-*.sh
+*.md
+
