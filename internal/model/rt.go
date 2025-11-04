@@ -27,7 +27,7 @@ func withPrefix(tableName string) string {
 // RT 存储 RT token 的模型
 type RT struct {
 	ID              int64     `json:"id" gorm:"primaryKey;autoIncrement"`
-	BizId           string    `json:"biz_id" gorm:"type:varchar(255);uniqueIndex:idx_biz_id;not null"`
+	BizId           string    `json:"biz_id" gorm:"type:varchar(255);uniqueIndex:uni_rt_rts_biz_id;not null"`
 	UserName        string    `json:"user_name" gorm:"type:varchar(255)"`
 	Email           string    `json:"email" gorm:"type:varchar(255)"`
 	Type            string    `json:"type" gorm:"type:varchar(50)"`

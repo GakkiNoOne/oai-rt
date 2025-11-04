@@ -1,5 +1,7 @@
 import { defineConfig } from 'umi';
 
+// 使用绝对路径 / 避免 UMI 的开发环境限制
+// 前端使用 hash 路由，资源都是相对路径加载，不会有跨域问题
 export default defineConfig({
   npmClient: 'pnpm',
   history: {

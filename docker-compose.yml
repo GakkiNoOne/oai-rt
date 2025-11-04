@@ -1,6 +1,6 @@
 services:
   rt-manage:
-    image: rt-manage:0.0.1
+    image: ghcr.io/gakkinoone/oai-rt:latest
     container_name: rt-manage
     restart: unless-stopped
     ports:

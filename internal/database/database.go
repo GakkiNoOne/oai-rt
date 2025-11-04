@@ -61,12 +61,20 @@ func Init(cfg *config.DatabaseConfig) error {
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
 
-	// 自动迁移数据库表
-	if err := db.AutoMigrate(
-		&model.RT{},
-		&model.SystemConfig{},
-	); err != nil {
-		return fmt.Errorf("数据库迁移失败: %w", err)
+	// 自动迁移数据库表（只创建表和列，不处理索引变更）
+	migrator := db.Migrator()
+	
+	// 检查表是否存在，不存在才自动迁移
+	if !migrator.HasTable(&model.RT{}) {
+		if err := db.AutoMigrate(&model.RT{}); err != nil {
+			return fmt.Errorf("创建 rt_rts 表失败: %w", err)
+		}
+	}
+	
+	if !migrator.HasTable(&model.SystemConfig{}) {
+		if err := db.AutoMigrate(&model.SystemConfig{}); err != nil {
+			return fmt.Errorf("创建 system_configs 表失败: %w", err)
+		}
 	}
 
 	return nil

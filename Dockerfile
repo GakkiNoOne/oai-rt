@@ -8,15 +8,20 @@ WORKDIR /frontend
 
 # 复制前端依赖文件
 COPY frontend/package*.json ./
+COPY frontend/pnpm-lock.yaml ./
 
-# 安装前端依赖
-RUN npm install
+# 安装 pnpm 和前端依赖
+RUN npm install -g pnpm && \
+    pnpm install
 
 # 复制前端源代码
 COPY frontend/ ./
 
 # 构建前端
-RUN npm run build
+RUN pnpm run setup && pnpm run build
+
+# 验证构建产物
+RUN ls -la dist/
 
 # 第二阶段：构建后端
 FROM golang:1.24-alpine AS backend-builder
