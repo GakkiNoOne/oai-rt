@@ -2,8 +2,7 @@
 一个用于管理和自动刷新 OpenAI Refresh Token 的系统。
 
 <div align="center">
-  <img src="resource/screenshot.png" alt="OAI RT 管理系统" width="800"/>
-</div>
+    <img width="5100" height="2410" alt="Image" src="https://github.com/user-attachments/assets/61e8cada-593d-4466-a678-7c10a5b21939" /></div>
 <br/>
 
 
