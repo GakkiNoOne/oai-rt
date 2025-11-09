@@ -114,7 +114,7 @@ docker-compose logs -f
 |--------|------|--------|------|
 | `auth.username` | string | `admin` | 管理后台登录用户名 |
 | `auth.password` | string | `admin123` | 管理后台登录密码 |
-| `auth.jwt_secret` | string | - | JWT 签名密钥，**生产环境必须修改** |
+| `auth.jwt_secret` | string | - | JWT 签名密钥，**生产环境必须修改**, 可以使用https://jwtsecrets.com/去生成 |
 | `auth.jwt_expire_hours` | int | `240` | JWT 过期时间（小时） |
 | `auth.api_secret` | string | - | 对外 API 密钥，用于 API 接口鉴权 |
 
