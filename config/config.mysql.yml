@@ -21,4 +21,5 @@ auth:
   jwt_secret: "your-secret-key-change-this-in-production"  # JWT 签名密钥，生产环境请修改
   jwt_expire_hours: 240  # JWT 过期时间（小时）
   api_secret: "aaaaa"  # API 密钥，可直接作为 Authorization Bearer token 使用
+  public_api_prefix: "/public-api"  # 对外API路由前缀，默认 "/public-api"，可自定义如 "/api/v1"
 

@@ -3,7 +3,7 @@ import { message } from 'antd';
 
 // 创建axios实例，配置基础URL和默认超时时间
 const instance = axios.create({
-  baseURL: '/api',
+  baseURL: '/internalweb/v1',
   timeout: 30000, // 默认30秒超时
   headers: {
     'Content-Type': 'application/json',
