@@ -91,12 +91,13 @@ func (h *RTHandler) ListRTs(c *gin.Context) {
 // CreateRT 创建RT - POST /api/rts/create
 func (h *RTHandler) CreateRT(c *gin.Context) {
 	var req struct {
-		BizId   string `json:"biz_id"`
-		RTToken string `json:"rt_token" binding:"required"`
-		Proxy   string `json:"proxy"`
-		Tag     string `json:"tag"`
-		Enabled bool   `json:"enabled"`
-		Memo    string `json:"memo"`
+		BizId    string `json:"biz_id"`
+		RTToken  string `json:"rt_token" binding:"required"`
+		Proxy    string `json:"proxy"`
+		ClientID string `json:"client_id"`
+		Tag      string `json:"tag"`
+		Enabled  bool   `json:"enabled"`
+		Memo     string `json:"memo"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -109,15 +110,16 @@ func (h *RTHandler) CreateRT(c *gin.Context) {
 	}
 
 	// 记录请求参数（完整RT Token）
-	logger.Info("创建RT - 请求", "biz_id", req.BizId, "rt_token", req.RTToken, "proxy", req.Proxy, "tag", req.Tag, "enabled", req.Enabled)
+	logger.Info("创建RT - 请求", "biz_id", req.BizId, "rt_token", req.RTToken, "proxy", req.Proxy, "client_id", req.ClientID, "tag", req.Tag, "enabled", req.Enabled)
 
 	rt := &model.RT{
-		BizId:   req.BizId,
-		Rt:      req.RTToken,
-		Proxy:   req.Proxy,
-		Tag:     req.Tag,
-		Enabled: req.Enabled,
-		Memo:    req.Memo,
+		BizId:    req.BizId,
+		Rt:       req.RTToken,
+		Proxy:    req.Proxy,
+		ClientID: req.ClientID,
+		Tag:      req.Tag,
+		Enabled:  req.Enabled,
+		Memo:     req.Memo,
 	}
 
 	if err := h.rtService.Create(rt); err != nil {
@@ -325,6 +327,8 @@ func (h *RTHandler) BatchImportRTs(c *gin.Context) {
 	var req struct {
 		BatchName string   `json:"batch_name"`
 		Tag       string   `json:"tag"`
+		Proxy     string   `json:"proxy"`
+		ClientID  string   `json:"client_id"`
 		RTTokens  []string `json:"rt_tokens" binding:"required"`
 	}
 
@@ -346,12 +350,13 @@ func (h *RTHandler) BatchImportRTs(c *gin.Context) {
 			tokenPreviews = append(tokenPreviews, token)
 		}
 	}
-	logger.Info("批量导入RT - 请求", "batch_name", req.BatchName, "tag", req.Tag, "token_count", len(req.RTTokens), "token_previews", tokenPreviews)
+	logger.Info("批量导入RT - 请求", "batch_name", req.BatchName, "tag", req.Tag, "proxy", req.Proxy, "client_id", req.ClientID, "token_count", len(req.RTTokens), "token_previews", tokenPreviews)
 
-	// 获取代理列表
+	// 获取代理列表和 Client ID 列表
 	proxyList, _ := h.configService.GetProxyList()
+	clientIdList, _ := h.configService.GetClientIdList()
 
-	successCount, failCount, err := h.rtService.BatchImport(req.BatchName, req.Tag, req.RTTokens, proxyList)
+	successCount, failCount, err := h.rtService.BatchImport(req.BatchName, req.Tag, req.Proxy, req.ClientID, req.RTTokens, proxyList, clientIdList)
 	if err != nil {
 		logger.Error("批量导入RT失败", "batch_name", req.BatchName, "tag", req.Tag, "token_count", len(req.RTTokens), "error", err)
 		c.JSON(http.StatusInternalServerError, APIResponse{

@@ -30,8 +30,8 @@ func SetupStaticRoutes(r *gin.Engine) error {
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		
-		// API 路由不处理
-		if strings.HasPrefix(path, "/api/") {
+		// API 路由不处理（内部管理 API 和健康检查）
+		if strings.HasPrefix(path, "/internalweb/") || strings.HasPrefix(path, "/health") {
 			c.JSON(http.StatusNotFound, gin.H{
 				"success": false,
 				"msg":     "API路径不存在",

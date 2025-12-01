@@ -1,11 +1,15 @@
 import React from 'react';
-import { Modal, Form, Input } from 'antd';
+import { Modal, Form, Input, Select, AutoComplete } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 
 interface BatchImportModalProps {
   open: boolean;
   form: FormInstance;
   loading: boolean;
+  proxyList: string[];
+  loadingProxy: boolean;
+  clientIDList: string[];
+  loadingClientID: boolean;
   onOk: () => void;
   onCancel: () => void;
 }
@@ -14,6 +18,10 @@ const BatchImportModal: React.FC<BatchImportModalProps> = ({
   open,
   form,
   loading,
+  proxyList,
+  loadingProxy,
+  clientIDList,
+  loadingClientID,
   onOk,
   onCancel,
 }) => {
@@ -38,6 +46,41 @@ const BatchImportModal: React.FC<BatchImportModalProps> = ({
           extra="可选，为这批RT设置统一标签"
         >
           <Input placeholder="例如：测试账号、生产环境等（可选）" allowClear />
+        </Form.Item>
+
+        <Form.Item
+          name="proxy"
+          label="代理"
+          extra="可选，为这批RT设置统一代理，不配置则使用本机IP"
+        >
+          <Select
+            placeholder="从列表选择代理（可选）"
+            loading={loadingProxy}
+            showSearch
+            optionFilterProp="children"
+            allowClear
+          >
+            {proxyList.map((proxy, index) => (
+              <Select.Option key={index} value={proxy}>
+                {proxy}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="client_id"
+          label="Client ID"
+          extra="可选，为这批RT设置统一的Client ID，不配置则使用默认值"
+        >
+          <AutoComplete
+            placeholder="从列表选择或输入自定义 Client ID"
+            options={clientIDList.map((clientID) => ({ value: clientID }))}
+            filterOption={(inputValue, option) =>
+              option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+            }
+            allowClear
+          />
         </Form.Item>
 
         <Form.Item

@@ -49,6 +49,8 @@ const RTManagement: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [proxyList, setProxyList] = useState<string[]>([]);
   const [loadingProxy, setLoadingProxy] = useState(false);
+  const [clientIDList, setClientIDList] = useState<string[]>([]);
+  const [loadingClientID, setLoadingClientID] = useState(false);
   
   // 刷新确认弹框状态
   const [isRefreshModalVisible, setIsRefreshModalVisible] = useState(false);
@@ -65,9 +67,7 @@ const RTManagement: React.FC = () => {
     type?: string;
     enabled?: boolean;
     create_date?: string;
-  }>({
-    enabled: true
-  });
+  }>({});
 
   // 加载数据
   const loadData = async () => {
@@ -105,14 +105,28 @@ const RTManagement: React.FC = () => {
     }
   };
 
+  // 加载 Client ID 列表
+  const loadClientIDList = async () => {
+    setLoadingClientID(true);
+    try {
+      const response = await configsApi.getClientIDList();
+      if (response.success && response.data) {
+        setClientIDList(response.data);
+      }
+    } catch (error) {
+      console.error('加载 Client ID 列表失败:', error);
+    } finally {
+      setLoadingClientID(false);
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, [page, pageSize, searchParams]);
 
   useEffect(() => {
     loadProxyList();
-    // 设置搜索表单的初始值
-    searchForm.setFieldsValue({ enabled: true });
+    loadClientIDList();
   }, []);
 
   // 处理搜索
@@ -136,9 +150,7 @@ const RTManagement: React.FC = () => {
   // 重置搜索
   const handleReset = () => {
     searchForm.resetFields();
-    // 重置后也默认显示启用的 RT
-    searchForm.setFieldsValue({ enabled: true });
-    setSearchParams({ enabled: true });
+    setSearchParams({});
     setPage(1);
   };
 
@@ -157,6 +169,7 @@ const RTManagement: React.FC = () => {
       biz_id: record.biz_id,
       rt_token: record.rt,
       proxy: record.proxy,
+      client_id: record.client_id,
       tag: record.tag,
       enabled: record.enabled,
       memo: record.memo,
@@ -184,11 +197,13 @@ const RTManagement: React.FC = () => {
         // 编辑 - 只更新允许编辑的字段
         const updateData = {
           biz_id: values.biz_id,
-          proxy: values.proxy,
-          tag: values.tag,
+          proxy: values.proxy ?? '',  // 使用 ?? 确保 undefined/null 转为空字符串
+          client_id: values.client_id ?? '',
+          tag: values.tag ?? '',
           enabled: values.enabled,
-          memo: values.memo,
+          memo: values.memo ?? '',
         };
+        console.log('更新数据:', updateData); // 调试日志
         const response = await rtsApi.update(editingRT.id, updateData);
         if (response.success) {
           message.success('更新成功');
@@ -202,6 +217,8 @@ const RTManagement: React.FC = () => {
           biz_id: values.biz_id,
           rt_token: values.rt_token,
           proxy: values.proxy,
+          client_id: values.client_id,
+          tag: values.tag,
           enabled: values.enabled,
           memo: values.memo,
         };
@@ -512,6 +529,8 @@ const RTManagement: React.FC = () => {
     try {
       const values = await batchForm.validateFields();
       const tag = values.tag || '';
+      const proxy = values.proxy || '';
+      const clientId = values.client_id || '';
       const tokensText = values.tokensText;
       
       // 按行分割，过滤空行
@@ -527,7 +546,7 @@ const RTManagement: React.FC = () => {
       
       setBatchLoading(true);
       // 注意：batchName参数已弃用，每个RT会生成唯一的随机8位ID
-      const response = await rtsApi.batchCreate('', tag, rtTokens);
+      const response = await rtsApi.batchCreate('', tag, rtTokens, clientId, proxy);
       
       if (response.success && response.data) {
         const result = response.data;
@@ -1000,6 +1019,8 @@ const RTManagement: React.FC = () => {
         form={form}
         proxyList={proxyList}
         loadingProxy={loadingProxy}
+        clientIDList={clientIDList}
+        loadingClientID={loadingClientID}
         onOk={handleModalOk}
         onCancel={() => {
           setIsModalVisible(false);
@@ -1012,6 +1033,10 @@ const RTManagement: React.FC = () => {
         open={isBatchModalVisible}
         form={batchForm}
         loading={batchLoading}
+        proxyList={proxyList}
+        loadingProxy={loadingProxy}
+        clientIDList={clientIDList}
+        loadingClientID={loadingClientID}
         onOk={handleBatchModalOk}
         onCancel={() => {
           setIsBatchModalVisible(false);

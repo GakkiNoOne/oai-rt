@@ -2,7 +2,7 @@
 一个用于管理和自动刷新 OpenAI Refresh Token 的系统。
 
 <div align="center">
-    <img width="5100" height="2410" alt="Image" src="https://github.com/user-attachments/assets/61e8cada-593d-4466-a678-7c10a5b21939" /></div>
+    <img width="5100" height="2410" alt="Image" src="/resource/screenshot.png" /></div>
 <br/>
 
 
@@ -49,6 +49,7 @@ auth:
   jwt_secret: "your-secret-key-change-this-in-production"  # JWT 签名密钥（生产环境必须修改）
   jwt_expire_hours: 240  # JWT 过期时间（小时）
   api_secret: "my-api-secret-2025"  # 对外 API 密钥
+  public_api_prefix: "/public-api"  # 对外 API 路由前缀（可选，默认 /public-api）
 ```
 
 ### 2. 使用 Docker Compose 启动
@@ -116,6 +117,7 @@ docker-compose logs -f
 | `auth.jwt_secret` | string | - | JWT 签名密钥，**生产环境必须修改**, 可以使用https://jwtsecrets.com/去生成 |
 | `auth.jwt_expire_hours` | int | `240` | JWT 过期时间（小时） |
 | `auth.api_secret` | string | - | 对外 API 密钥，用于 API 接口鉴权 |
+| `auth.public_api_prefix` | string | `/public-api` | 对外 API 路由前缀，可自定义（如 `/external/v1`） |
 
 ## 访问地址
 
@@ -126,6 +128,11 @@ docker-compose logs -f
 ## 对外 API 使用
 
 所有对外 API 接口需要在 HTTP Header 中添加 API Secret：`X-API-Secret`
+
+**路由前缀说明：**
+- 默认路由前缀为 `/public-api`
+- 可在配置文件 `config.yml` 中通过 `auth.public_api_prefix` 自定义路由前缀
+- 以下示例使用默认前缀 `/public-api`，实际使用时请替换为您配置的前缀
 
 ### 1. 刷新 RT 并获取 AT
 
@@ -169,6 +176,13 @@ curl -X POST http://localhost:8080/public-api/get-at \
   -d '{
     "email": "user@example.com"
   }'
+```
+
+### 3. 健康检查
+
+```bash
+curl -X GET http://localhost:8080/public-api/health \
+  -H "X-API-Secret: my-api-secret-2025"
 ```
 
 > **注意**：代理、自动刷新等 OpenAI 相关配置可在 Web 管理界面的"配置管理"页面进行设置。

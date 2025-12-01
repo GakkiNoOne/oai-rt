@@ -26,21 +26,21 @@ const ApiDocs: React.FC = () => {
         {
           name: '刷新RT并获取AT',
           method: 'POST',
-          path: '/public-api/refresh',
+          path: '{your_public_api_prefix}/refresh',
           description: '根据 biz_id 或 email 查找RT并刷新，返回新的 access_token。优先级：biz_id > email',
           needAuth: true,
           curl: `# 使用 biz_id 查询
-curl -X POST http://localhost:8080/public-api/refresh \\
+curl -X POST http://localhost:8080{your_public_api_prefix}/refresh \\
   -H "Content-Type: application/json" \\
-  -H "X-API-Secret: my-api-secret-2025" \\
+  -H "X-API-Secret: {your_api_secret}" \\
   -d '{
     "biz_id": "user001"
   }'
 
 # 使用 email 查询
-curl -X POST http://localhost:8080/public-api/refresh \\
+curl -X POST http://localhost:8080{your_public_api_prefix}/refresh \\
   -H "Content-Type: application/json" \\
-  -H "X-API-Secret: my-api-secret-2025" \\
+  -H "X-API-Secret: {your_api_secret}" \\
   -d '{
     "email": "user@example.com"
   }'
@@ -62,21 +62,21 @@ curl -X POST http://localhost:8080/public-api/refresh \\
         {
           name: '获取AT（不刷新）',
           method: 'POST',
-          path: '/public-api/get-at',
+          path: '{your_public_api_prefix}/get-at',
           description: '根据 biz_id 或 email 查找RT，直接返回已有的 access_token，不执行刷新操作',
           needAuth: true,
           curl: `# 使用 biz_id 查询
-curl -X POST http://localhost:8080/public-api/get-at \\
+curl -X POST http://localhost:8080{your_public_api_prefix}/get-at \\
   -H "Content-Type: application/json" \\
-  -H "X-API-Secret: my-api-secret-2025" \\
+  -H "X-API-Secret: {your_api_secret}" \\
   -d '{
     "biz_id": "user001"
   }'
 
 # 使用 email 查询
-curl -X POST http://localhost:8080/public-api/get-at \\
+curl -X POST http://localhost:8080{your_public_api_prefix}/get-at \\
   -H "Content-Type: application/json" \\
-  -H "X-API-Secret: my-api-secret-2025" \\
+  -H "X-API-Secret: {your_api_secret}" \\
   -d '{
     "email": "user@example.com"
   }'
@@ -98,11 +98,11 @@ curl -X POST http://localhost:8080/public-api/get-at \\
         {
           name: '健康检查',
           method: 'GET',
-          path: '/public-api/health',
+          path: '{your_public_api_prefix}/health',
           description: '检查服务健康状态，无需认证',
           needAuth: true,
-          curl: `curl -X GET http://localhost:8080/public-api/health \\
-  -H "X-API-Secret: my-api-secret-2025"
+          curl: `curl -X GET http://localhost:8080{your_public_api_prefix}/health \\
+  -H "X-API-Secret: {your_api_secret}"
 
 # 响应示例
 {
@@ -133,9 +133,22 @@ curl -X POST http://localhost:8080/public-api/get-at \\
             <li>
               <Text strong>API Secret 认证：</Text> 使用配置文件中的固定密钥进行认证
               <br />
-              <Text code>X-API-Secret: my-api-secret-2025</Text>
+              <Text code>X-API-Secret: {'{your_api_secret}'}</Text>
               <br />
-              <Text type="warning">（api_secret 可在 config.yaml 的 auth.api_secret 中配置，默认值：my-api-secret-2025）</Text>
+              <Text type="warning">（api_secret 可在 config.yml 的 auth.api_secret 中配置）</Text>
+            </li>
+          </ul>
+        </Paragraph>
+
+        <Paragraph type="secondary">
+          <Text strong>路由前缀配置：</Text>
+          <ul>
+            <li>
+              对外 API 路由前缀可在 config.yml 的 <Text code>auth.public_api_prefix</Text> 中配置
+              <br />
+              默认值：<Text code>/public-api</Text>，可自定义如 <Text code>/external/v1</Text>
+              <br />
+              文档中使用 <Text code>{'{your_public_api_prefix}'}</Text> 作为占位符，请替换为您的实际配置值
             </li>
           </ul>
         </Paragraph>

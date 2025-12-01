@@ -52,11 +52,12 @@ type OpenAIConfig struct {
 
 // AuthConfig 认证配置
 type AuthConfig struct {
-	Username       string `mapstructure:"username"`
-	Password       string `mapstructure:"password"`
-	JWTSecret      string `mapstructure:"jwt_secret"`
-	JWTExpireHours int    `mapstructure:"jwt_expire_hours"`
-	APISecret      string `mapstructure:"api_secret"`
+	Username        string `mapstructure:"username"`
+	Password        string `mapstructure:"password"`
+	JWTSecret       string `mapstructure:"jwt_secret"`
+	JWTExpireHours  int    `mapstructure:"jwt_expire_hours"`
+	APISecret       string `mapstructure:"api_secret"`
+	PublicAPIPrefix string `mapstructure:"public_api_prefix"` // 对外API路由前缀，默认 "/public-api"
 }
 
 var cfg *Config
@@ -93,6 +94,7 @@ func Init() error {
 	viper.SetDefault("auth.jwt_secret", "your-secret-key-change-this-in-production")
 	viper.SetDefault("auth.jwt_expire_hours", 24)
 	viper.SetDefault("auth.api_secret", "my-api-secret-2025")
+	viper.SetDefault("auth.public_api_prefix", "/public-api")
 
 	if err := viper.ReadInConfig(); err != nil {
 		// 如果配置文件不存在，使用默认值

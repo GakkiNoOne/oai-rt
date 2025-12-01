@@ -36,7 +36,7 @@ type RT struct {
 	Proxy           string    `json:"proxy" gorm:"type:varchar(255)"`
 	ClientID        string    `json:"client_id" gorm:"type:varchar(255)"`
 	Tag             string    `json:"tag" gorm:"type:varchar(255)"`
-	Enabled         bool      `json:"enabled" gorm:"default:true;not null"`
+	Enabled         bool      `json:"enabled" gorm:"default:false;not null"`
 	LastRT          string     `json:"last_rt" gorm:"type:text"`
 	RefreshResult   string     `json:"refresh_result" gorm:"type:text"`
 	UserInfo        string     `json:"user_info" gorm:"type:text"`

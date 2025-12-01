@@ -28,6 +28,7 @@ export interface CreateRTRequest {
   biz_id: string;
   rt_token: string;
   proxy?: string;
+  client_id?: string;
   tag?: string;
   enabled: boolean;
   memo?: string;
@@ -39,6 +40,7 @@ export interface UpdateRTRequest {
   updates: {
     biz_id?: string;
     proxy?: string;
+    client_id?: string;
     tag?: string;
     enabled?: boolean;
     memo?: string;
@@ -126,11 +128,13 @@ export const rtsApi = {
   },
 
   // 批量导入
-  batchCreate: (batchName: string, tag: string, rtTokens: string[]): Promise<APIResponse<BatchResult>> => {
+  batchCreate: (batchName: string, tag: string, rtTokens: string[], clientId?: string, proxy?: string): Promise<APIResponse<BatchResult>> => {
     return request.post('/rts/batch-import', {
       batch_name: batchName,
       tag: tag,
       rt_tokens: rtTokens,
+      client_id: clientId,
+      proxy: proxy,
     });
   },
 

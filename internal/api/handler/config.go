@@ -102,3 +102,26 @@ func (h *ConfigHandler) GetProxyList(c *gin.Context) {
 		Data:    proxyList,
 	})
 }
+
+// GetClientIDList 获取 Client ID 列表 - POST /api/configs/get-clientid-list
+func (h *ConfigHandler) GetClientIDList(c *gin.Context) {
+	logger.Info("获取 Client ID 列表 - 请求")
+
+	clientIDList, err := h.configService.GetClientIdList()
+	if err != nil {
+		logger.Error("获取 Client ID 列表失败", "error", err)
+		c.JSON(http.StatusInternalServerError, APIResponse{
+			Success: false,
+			Msg:     "获取 Client ID 列表失败: " + err.Error(),
+		})
+		return
+	}
+
+	logger.Info("获取 Client ID 列表成功", "clientid_count", len(clientIDList), "clientids", clientIDList)
+
+	c.JSON(http.StatusOK, APIResponse{
+		Success: true,
+		Msg:     "获取成功",
+		Data:    clientIDList,
+	})
+}

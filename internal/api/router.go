@@ -43,16 +43,30 @@ func NewRouter() *gin.Engine {
 	publicAPIHandler := handler.NewPublicAPIHandler(rtService)
 
 	// 对外公开API路由组（使用API Secret认证）
-	publicAPI := r.Group("/public-api")
+	// 从配置文件读取路由前缀，默认为 "/public-api"
+	publicAPIPrefix := config.Get().Auth.PublicAPIPrefix
+	if publicAPIPrefix == "" {
+		publicAPIPrefix = "/public-api"
+	}
+	
+	// 验证前缀，防止与内部管理 API 冲突
+	if publicAPIPrefix == "/internalweb" || publicAPIPrefix == "/health" {
+		logger.Error("public_api_prefix 配置错误：不能使用 /internalweb 或 /health，这些路径已被系统占用", "prefix", publicAPIPrefix)
+		panic("public_api_prefix 配置错误：不能使用 /internalweb 或 /health")
+	}
+	
+	publicAPI := r.Group(publicAPIPrefix)
 	publicAPI.Use(middleware.APISecret())
 	{
 		publicAPI.GET("/health", handler.Health)                          // 健康检查
 		publicAPI.POST("/refresh", publicAPIHandler.RefreshAndGetAT)      // 刷新RT并获取AT
 		publicAPI.POST("/get-at", publicAPIHandler.GetAT)                 // 获取AT（不刷新）
 	}
+	
+	logger.Info("对外API路由前缀", "prefix", publicAPIPrefix)
 
 	// API路由组（内部管理使用）
-	api := r.Group("/api")
+	api := r.Group("/internalweb/v1")
 	{
 		// 认证路由（不需要JWT验证）
 		auth := api.Group("/auth")
@@ -88,9 +102,10 @@ func NewRouter() *gin.Engine {
 			// 配置管理路由
 			configs := authorized.Group("/configs")
 			{
-				configs.POST("/get-system", configHandler.GetSystemConfigs)    // 获取系统配置
-				configs.POST("/save-system", configHandler.SaveSystemConfigs)  // 保存系统配置
-				configs.POST("/get-proxy-list", configHandler.GetProxyList)    // 获取代理列表
+				configs.POST("/get-system", configHandler.GetSystemConfigs)       // 获取系统配置
+				configs.POST("/save-system", configHandler.SaveSystemConfigs)     // 保存系统配置
+				configs.POST("/get-proxy-list", configHandler.GetProxyList)       // 获取代理列表
+				configs.POST("/get-clientid-list", configHandler.GetClientIDList) // 获取 Client ID 列表
 			}
 		}
 	}

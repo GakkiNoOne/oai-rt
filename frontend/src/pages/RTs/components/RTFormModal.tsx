@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Input, Select, Switch } from 'antd';
+import { Modal, Form, Input, Select, Switch, AutoComplete } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import type { RT } from '@/api/rts';
 
@@ -9,6 +9,8 @@ interface RTFormModalProps {
   form: FormInstance;
   proxyList: string[];
   loadingProxy: boolean;
+  clientIDList: string[];
+  loadingClientID: boolean;
   onOk: () => void;
   onCancel: () => void;
 }
@@ -19,9 +21,24 @@ const RTFormModal: React.FC<RTFormModalProps> = ({
   form,
   proxyList,
   loadingProxy,
+  clientIDList,
+  loadingClientID,
   onOk,
   onCancel,
 }) => {
+  // 构建 Client ID 选项列表，确保包含所有配置的 ID 和当前值
+  const getClientIDOptions = () => {
+    const currentClientID = editingRT?.client_id;
+    const optionSet = new Set(clientIDList);
+    
+    // 如果当前有自定义的 client_id，也加入到选项中
+    if (currentClientID && !optionSet.has(currentClientID)) {
+      optionSet.add(currentClientID);
+    }
+    
+    return Array.from(optionSet).map((id) => ({ value: id }));
+  };
+
   return (
     <Modal
       title={editingRT ? '编辑RT' : '创建RT'}
@@ -63,9 +80,10 @@ const RTFormModal: React.FC<RTFormModalProps> = ({
         <Form.Item
           name="proxy"
           label="代理"
+          extra="可选，不配置则使用本机IP去请求"
         >
           <Select
-            placeholder="代理可选，不配置则使用本机ip去请求"
+            placeholder="从列表选择代理（可选）"
             loading={loadingProxy}
             showSearch
             optionFilterProp="children"
@@ -77,6 +95,21 @@ const RTFormModal: React.FC<RTFormModalProps> = ({
               </Select.Option>
             ))}
           </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="client_id"
+          label="Client ID"
+          extra={editingRT?.client_id && !clientIDList.includes(editingRT.client_id) ? '当前值为自定义Client ID' : undefined}
+        >
+          <AutoComplete
+            placeholder="可选，从列表选择或输入自定义值"
+            options={getClientIDOptions()}
+            filterOption={(inputValue, option) =>
+              option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+            }
+            allowClear
+          />
         </Form.Item>
 
         <Form.Item

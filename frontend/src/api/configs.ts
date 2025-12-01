@@ -40,4 +40,9 @@ export const configsApi = {
   getProxyList: (): Promise<APIResponse<string[]>> => {
     return request.post('/configs/get-proxy-list', {});
   },
+
+  // 获取 Client ID 列表
+  getClientIDList: (): Promise<APIResponse<string[]>> => {
+    return request.post('/configs/get-clientid-list', {});
+  },
 };

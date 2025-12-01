@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   proxy: {
-    '/api': {
+    '/internalweb': {
       target: 'http://localhost:8080',
       changeOrigin: true,
     },

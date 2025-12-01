@@ -39,7 +39,7 @@ type RTService interface {
 	RefreshUserInfo(id int64) (*model.RT, error)
 	RefreshAccountInfo(id int64) (*model.RT, error)
 	BatchRefresh(ids []int64) (int, int, []map[string]interface{}, error)
-	BatchImport(batchName string, tag string, tokens []string, proxyList []string) (int, int, error)
+	BatchImport(batchName string, tag string, proxy string, clientID string, tokens []string, proxyList []string, clientIdList []string) (int, int, error)
 	AutoRefreshAll() error
 }
 
@@ -146,10 +146,6 @@ func (s *rtService) Create(rt *model.RT) error {
 		rt.ClientID = cfg.OpenAI.ClientID
 		logger.Info("创建RT时填充默认 client_id", "client_id", rt.ClientID)
 	}
-	if rt.Proxy == "" && cfg.OpenAI.Proxy != "" {
-		rt.Proxy = cfg.OpenAI.Proxy
-		logger.Info("创建RT时填充默认 proxy", "proxy", rt.Proxy)
-	}
 
 	return s.repo.Create(rt)
 }
@@ -165,6 +161,8 @@ func (s *rtService) Update(id int64, updates map[string]interface{}) (*model.RT,
 	}
 
 	// 应用更新
+	logger.Info("更新RT - 接收到的updates", "id", id, "updates", updates)
+	
 	if bizId, ok := updates["biz_id"].(string); ok && bizId != "" {
 		// 检查新名称是否与其他RT冲突
 		if bizId != rt.BizId {
@@ -176,7 +174,12 @@ func (s *rtService) Update(id int64, updates map[string]interface{}) (*model.RT,
 		rt.BizId = bizId
 	}
 	if proxy, ok := updates["proxy"].(string); ok {
-		rt.Proxy = proxy
+		logger.Info("更新proxy字段", "old", rt.Proxy, "new", proxy)
+		rt.Proxy = proxy  // 支持清空代理（传递空字符串）
+	}
+	if clientId, ok := updates["client_id"].(string); ok {
+		logger.Info("更新client_id字段", "old", rt.ClientID, "new", clientId)
+		rt.ClientID = clientId  // 支持更新 Client ID
 	}
 	if tag, ok := updates["tag"].(string); ok {
 		rt.Tag = tag
@@ -714,7 +717,7 @@ func (s *rtService) BatchRefresh(ids []int64) (int, int, []map[string]interface{
 }
 
 // BatchImport 批量导入（batchName参数已弃用，每个RT都会生成唯一的32位UUID）
-func (s *rtService) BatchImport(batchName string, tag string, tokens []string, proxyList []string) (int, int, error) {
+func (s *rtService) BatchImport(batchName string, tag string, proxy string, clientID string, tokens []string, proxyList []string, clientIdList []string) (int, int, error) {
 	successCount := 0
 	failCount := 0
 
@@ -732,7 +735,11 @@ func (s *rtService) BatchImport(batchName string, tag string, tokens []string, p
 		existing, _ := s.repo.GetByToken(token)
 		if existing != nil {
 			failCount++
-			logger.Warn("Token已存在，跳过", "token", token[:20]+"...")
+			tokenPreview := token
+			if len(token) > 20 {
+				tokenPreview = token[:20] + "..."
+			}
+			logger.Warn("Token已存在，跳过", "token", tokenPreview)
 			continue
 		}
 
@@ -744,28 +751,38 @@ func (s *rtService) BatchImport(batchName string, tag string, tokens []string, p
 			existingName, _ = s.repo.GetByBizId(name)
 		}
 
-		// 随机选择代理
-		var proxy string
-		if len(proxyList) > 0 {
-			proxy = proxyList[rand.Intn(len(proxyList))]
+		// 确定使用的代理
+		var selectedProxy string
+		if proxy != "" {
+			// 如果用户指定了 proxy，优先使用
+			selectedProxy = proxy
+		} else if len(proxyList) > 0 {
+			// 否则从列表中随机选择
+			selectedProxy = proxyList[rand.Intn(len(proxyList))]
+		}
+
+		// 确定使用的 Client ID
+		var selectedClientID string
+		if clientID != "" {
+			// 如果用户指定了 client_id，优先使用
+			selectedClientID = clientID
+		} else if len(clientIdList) > 0 {
+			// 否则从列表中随机选择
+			selectedClientID = clientIdList[rand.Intn(len(clientIdList))]
+		} else {
+			// 都没有则使用配置中的默认值
+			cfg := config.Get()
+			selectedClientID = cfg.OpenAI.ClientID
 		}
 
 		// 创建RT
 		rt := &model.RT{
-			BizId:   name,
-			Rt:      token,
-			Proxy:   proxy,
-			Tag:     tag,
-			Enabled: false,
-		}
-
-		// 填充默认配置值（如果字段为空）
-		cfg := config.Get()
-		if rt.ClientID == "" {
-			rt.ClientID = cfg.OpenAI.ClientID
-		}
-		if rt.Proxy == "" && cfg.OpenAI.Proxy != "" {
-			rt.Proxy = cfg.OpenAI.Proxy
+			BizId:    name,
+			Rt:       token,
+			Proxy:    selectedProxy,
+			ClientID: selectedClientID,
+			Tag:      tag,
+			Enabled:  false,
 		}
 
 		if err := s.repo.Create(rt); err != nil {
